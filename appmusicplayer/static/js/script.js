@@ -91,6 +91,79 @@ let userData = {
 
 };
 
+//FUNCION PARA REPRODUCIR LAS CANCIONES
+const playSong = (id) => {
+  const song = userData?.songs.find((song) => song.id === id);
+  audio.src = song.src;
+  audio.title = song.title;
+
+  if (userData?.currentSong === null || userData?.currentSong.id !== song.id) {
+    audio.currentTime = 0;
+  } else {
+    audio.currentTime = userData?.songCurrentTime;
+  }
+  userData.currentSong = song;
+  playButton.classList.add("playing");
+  highlightCurrentSong();
+
+  audio.play();
+};
+
+const pauseSong = () => {
+  /** 
+   * Para almacenar el tiempo actual de la canción cuando está en pausa, 
+   * establece el songCurrentTime del objeto userData al currentTime de la variable audio.
+  */
+  userData.songCurrentTime = audio.currentTime;
+  playButton.classList.remove("playing")
+  audio.pause();
+
+};
+
+const playNextSong = () => {
+  if (userData?.currentSong === null) {
+    playSong(userData?.songs[0].id);
+  } else {
+    const currentSongIndex = getCurrentSongIndex();
+    //Suma +1 al index de la cancion 
+    const nextSong = userData?.songs[currentSongIndex + 1];
+    //reproduce la cancion segun el id 
+    playSong(nextSong.id);
+  }
+};
+
+const playPreviousSong = () => {
+  if (userData?.currentSong === null) return;
+  else {
+    const currentSongIndex = getCurrentSongIndex();
+    const previousSong = userData?.songs[currentSongIndex - 1];
+
+    playSong(previousSong.id);
+  }
+};
+
+
+const highlightCurrentSong = () => {
+  //obtener el elemento .playlist-song y asígnalo a una constante playlistSongElements.
+  const playlistSongElements = document.querySelectorAll(".playlist-song");
+
+  //Utiliza getElementById() para obtener el id de la canción que se está reproduciendo, 
+  //luego utiliza literales de plantilla para anteponerle song-. Asígnalo a la constante 
+  //songToHighlight.
+  const songToHighlight = document.getElementById(
+    `song-${userData?.currentSong?.id}`
+  );
+  //El método forEach se utiliza para recorrer un array y realizar una función en cada 
+  //elemento del array. 
+  playlistSongElements.forEach((songEl) => {
+    //para eliminar el atributo "aria-current". Esto eliminará el atributo para cada 
+    //una de las canciones.
+    songEl.removeAttribute("aria-current");
+  });
+  //Resalta la cancion reproducida
+  if (songToHighlight) songToHighlight.setAttribute("aria-current", "true");
+};
+
 /**
  * Una función de flecha es una forma más corta y concisa de escribir funciones en JavaScript. 
  * Es una expresión de función, que es una función que se asigna a una variable.
@@ -101,7 +174,7 @@ const renderSongs = (array) => {
   const songsHTML = array.map((song) => {
     return `
       <li id="song-${song.id}" class="playlist-song">
-      <button class="playlist-song-info">
+      <button class="playlist-song-info" onclick="playSong(${song.id})">
           <span class="playlist-song-title">${song.title}</span>
           <span class="playlist-song-artist">${song.artist}</span>
           <span class="playlist-song-duration">${song.duration}</span>
@@ -117,6 +190,25 @@ const renderSongs = (array) => {
   playlistSongs.innerHTML = songsHTML;
 };
 
+const getCurrentSongIndex = () => userData?.songs.indexOf(userData?.currentSong);
+
+
+playButton.addEventListener("click", () => {
+  if (userData?.currentSong === null) {
+    playSong(userData?.songs[0].id);
+  } else {
+    //Esto garantiza que la canción que se está reproduciendo seguirá sonando cuando 
+    //se pulse el botón de reproducción.
+
+    playSong(userData?.currentSong.id);
+  }
+});
+
+pauseButton.addEventListener("click", pauseSong);
+nextButton.addEventListener("click", playNextSong);
+previousButton.addEventListener("click", playPreviousSong);
+
+
 /**El método sort() convierte los elementos de una matriz en cadenas y las ordena en su 
  * lugar basándose en sus valores en la codificación UTF-16.
  */
@@ -131,7 +223,7 @@ const sortSongs = () => {
     if (a.title < b.title) {
       return -1;
     }
-    
+
     //la función devuelve 1, lo que ordena el primer title después del segundo.
     if (a.title > b.title) {
       return 1;
