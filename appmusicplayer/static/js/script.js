@@ -162,8 +162,6 @@ const deleteSong = (id) => {
   if (userData?.currentSong?.id === id) {
     userData.currentSong = null;
     userData.songCurrentTime = 0;
-
-
     pauseSong();
     setPlayerDisplay();
   }
@@ -182,22 +180,15 @@ const deleteSong = (id) => {
     const resetText = document.createTextNode("Reset Playlist");
     resetButton.id = "reset";
     resetButton.ariaLabel = "Reset playlist";
-
-
     //appendChild() permite añadir un nodo o un elemento como hijo de otro elemento.
     resetButton.appendChild(resetText);
     playlistSongs.appendChild(resetButton);
 
-
     resetButton.addEventListener("click", () => {
       userData.songs = [...allSongs];
-
-
       renderSongs(sortSongs());
       setPlayButtonAccessibleText();
       resetButton.remove();
-
-
     });
   }
 };
@@ -269,7 +260,6 @@ const renderSongs = (array) => {
 
 const setPlayButtonAccessibleText = () => {
   const song = userData?.currentSong || userData?.songs[0];
-
   playButton.setAttribute(
     "aria-label",
     song?.title ? `Play ${song.title}` : "Play"
@@ -296,6 +286,24 @@ nextButton.addEventListener("click", playNextSong);
 previousButton.addEventListener("click", playPreviousSong);
 shuffleButton.addEventListener("click", shuffle);
 
+//Si finaliza la cancion reproduce la siguiente 
+audio.addEventListener("ended", () => {
+  const currentSongIndex = getCurrentSongIndex();
+  const nextSongExists = userData?.songs[currentSongIndex + 1] !== undefined;
+  if (nextSongExists) {
+    playNextSong();
+  } else {
+    userData.currentSong = null;
+    userData.songCurrentTime = 0;
+    pauseSong()
+    setPlayerDisplay()
+    highlightCurrentSong()
+    setPlayButtonAccessibleText()
+  }
+ 
+ 
+ });
+ 
 
 /**El método sort() convierte los elementos de una matriz en cadenas y las ordena en su 
  * lugar basándose en sus valores en la codificación UTF-16.
@@ -324,3 +332,4 @@ const sortSongs = () => {
 };
 
 renderSongs(sortSongs());
+setPlayButtonAccessibleText();
