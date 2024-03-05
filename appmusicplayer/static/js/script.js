@@ -213,11 +213,12 @@ const renderSongs = (array) => {
   }).join("");
 
   playlistSongs.innerHTML = songsHTML;
+
 };
 
-/**Esta función establece el atributo aria-label en la canción actual o en la primera 
- * canción de la lista de reproducción. Y si la lista de reproducción está vacía, 
- * establece el atributo aria-label en "Reproducir".
+/**Esta función establece el atributo aria-label en la canción actual o en la primera canción 
+ * de la lista de reproducción. Y si la lista de reproducción está vacía,establece el atributo 
+ * aria-label en "Reproducir".
  */
 
 const setPlayButtonAccessibleText = () => {
