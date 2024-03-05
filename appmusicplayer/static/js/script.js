@@ -1,12 +1,12 @@
 
-const playlistSongs = document.getElementById("playlist-songs");
-const playButton = document.getElementById("play");
-const pauseButton = document.getElementById("pause");
-const nextButton = document.getElementById("next");
-const previousButton = document.getElementById("previous");
-const shuffleButton = document.getElementById("shuffle");
+const playlistCanciones = document.getElementById("playlist-canciones");
+const btn_play = document.getElementById("play");
+const btn_pause = document.getElementById("pause");
+const btn_siguiente = document.getElementById("next");
+const btn_anterior = document.getElementById("previous");
+const btn_aleatorio = document.getElementById("shuffle");
 
-const allSongs = [
+const todasCanciones = [
   {
     id: 0,
     title: "Scratching The Surface",
@@ -83,147 +83,152 @@ const audio = new Audio();
 let userData = {
   /**operador de dispersión (...) permite copiar todos los elementos de una matriz en otra. También 
    * puede utilizarse para concatenar varias matrices en una sola */
-  songs: [...allSongs],
+  canciones: [...todasCanciones],
   // maneja la cancion actual
-  currentSong: null,
+  cancionActual: null,
   // maneja el tiempo de la cancion actual
-  songCurrentTime: 0,
+  tiempoActualCanción: 0,
 
 };
 
 //FUNCION PARA REPRODUCIR LAS CANCIONES
-const playSong = (id) => {
-  const song = userData?.songs.find((song) => song.id === id);
-  audio.src = song.src;
-  audio.title = song.title;
+const playCancion = (id) => {
+  const cancion = userData?.canciones.find((song) => song.id === id);
+  audio.src = cancion.src;
+  audio.title = cancion.title;
 
-  if (userData?.currentSong === null || userData?.currentSong.id !== song.id) {
+  if (userData?.cancionActual === null || userData?.cancionActual.id !== cancion.id) {
     audio.currentTime = 0;
   } else {
-    audio.currentTime = userData?.songCurrentTime;
+    audio.currentTime = userData?.tiempoActualCanción;
   }
-  userData.currentSong = song;
-  playButton.classList.add("playing");
-  highlightCurrentSong();
-  setPlayerDisplay();
-  //setPlayButtonAccessibleText()
+  userData.cancionActual = cancion;
+
+  /**A continuación, utiliza la propiedad classList y el método add() para añadir la 
+   * clase playing al elemento playButton. Esto buscará la clase playing en el archivo CSS 
+   * y la añadirá al elemento playButton.
+   * Pinta o resalta al pulsar el boton play
+ */
+  btn_play.classList.add("playing");
+  destacarCancionActual();
+  establecerPantallaReproductor();
+  textoAccesibleBtnReproducir()
   audio.play();
 };
 
-const pauseSong = () => {
+const pausarCancion = () => {
   /** 
    * Para almacenar el tiempo actual de la canción cuando está en pausa, 
    * establece el songCurrentTime del objeto userData al currentTime de la variable audio.
   */
-  userData.songCurrentTime = audio.currentTime;
-  playButton.classList.remove("playing")
+  userData.tiempoActualCanción = audio.currentTime;
+  btn_play.classList.remove("playing")
   audio.pause();
 
 };
 
-const playNextSong = () => {
-  if (userData?.currentSong === null) {
-    playSong(userData?.songs[0].id);
+const playSiguienteCancion = () => {
+  if (userData?.cancionActual === null) {
+    playCancion(userData?.canciones[0].id);
   } else {
-    const currentSongIndex = getCurrentSongIndex();
+    const indiceCancionActual = obtenerIndiceCancionActual();
     //Suma +1 al index de la cancion 
-    const nextSong = userData?.songs[currentSongIndex + 1];
+    const siguienteCancion = userData?.canciones[indiceCancionActual + 1];
     //reproduce la cancion segun el id 
-    playSong(nextSong.id);
+    playCancion(siguienteCancion.id);
   }
 };
 
-const playPreviousSong = () => {
-  if (userData?.currentSong === null) return;
+const playAnteriorCancion = () => {
+  if (userData?.cancionActual === null) return;
   else {
-    const currentSongIndex = getCurrentSongIndex();
-    const previousSong = userData?.songs[currentSongIndex - 1];
-
-    playSong(previousSong.id);
+    const indiceCancionActual = obtenerIndiceCancionActual();
+    const anteriorCancion = userData?.canciones[indiceCancionActual - 1];
+    playCancion(anteriorCancion.id);
   }
 };
 
-const shuffle = () => {
+const aleatorio = () => {
   //entra a la data y la hace aleatorio
-  userData?.songs.sort(() => Math.random() - 0.5);
+  userData?.canciones.sort(() => Math.random() - 0.5);
   // vacia el currentsong y currentTime
-  userData.currentSong = null;
-  userData.songCurrentTime = 0;
+  userData.cancionActual = null;
+  userData.tiempoActualCanción = 0;
   //muetra los nuevos dato 
-  renderSongs(userData?.songs);
-  pauseSong();
-  setPlayerDisplay();
-  setPlayButtonAccessibleText();
+  renderCanciones(userData?.canciones);
+  pausarCancion();
+  establecerPantallaReproductor();
+  textoAccesibleBtnReproducir();
 };
 
 
 
-const deleteSong = (id) => {
-  if (userData?.currentSong?.id === id) {
-    userData.currentSong = null;
-    userData.songCurrentTime = 0;
-    pauseSong();
-    setPlayerDisplay();
+const borrarCancion = (id) => {
+  if (userData?.cancionActual?.id === id) {
+    userData.cancionActual = null;
+    userData.tiempoActualCanción = 0;
+    pausarCancion();
+    establecerPantallaReproductor();
   }
 
 
-  userData.songs = userData?.songs.filter((song) => song.id !== id);
-  renderSongs(userData?.songs);
-  highlightCurrentSong();
-  setPlayButtonAccessibleText();
+  userData.canciones = userData?.canciones.filter((song) => song.id !== id);
+  renderCanciones(userData?.canciones);
+  destacarCancionActual();
+  textoAccesibleBtnReproducir();
   //Optional chaining (?.) encadenamiento opcional
-  if (userData?.songs.length === 0) {
+  if (userData?.canciones.length === 0) {
     //createElement() es un método DOM que puede utilizar para crear dinámicamente
     //un elemento utilizando JavaScript.
-    const resetButton = document.createElement("button");
+    const resetearBoton = document.createElement("button");
     //El método createTextNode() se utiliza para crear un nodo de texto.
-    const resetText = document.createTextNode("Reset Playlist");
-    resetButton.id = "reset";
-    resetButton.ariaLabel = "Reset playlist";
+    const resetearTexto = document.createTextNode("Resetear Playlist");
+    resetearBoton.id = "reset";
+    resetearBoton.ariaLabel = "Resetear playlist";
     //appendChild() permite añadir un nodo o un elemento como hijo de otro elemento.
-    resetButton.appendChild(resetText);
-    playlistSongs.appendChild(resetButton);
+    resetearBoton.appendChild(resetearTexto);
+    playlistCanciones.appendChild(resetearBoton);
 
-    resetButton.addEventListener("click", () => {
-      userData.songs = [...allSongs];
-      renderSongs(sortSongs());
-      setPlayButtonAccessibleText();
-      resetButton.remove();
+    resetearBoton.addEventListener("click", () => {
+      userData.canciones = [...todasCanciones];
+      renderCanciones(ordenarCanciones());
+      textoAccesibleBtnReproducir();
+      resetearBoton.remove();
     });
   }
 };
 
 
-const setPlayerDisplay = () => {
-  const playingSong = document.getElementById("player-song-title");
-  const songArtist = document.getElementById("player-song-artist");
-  const currentTitle = userData?.currentSong?.title;
-  const currentArtist = userData?.currentSong?.artist;
+const establecerPantallaReproductor = () => {
+  const cancionPlay = document.getElementById("player-song-title");
+  const artistaCancion = document.getElementById("player-song-artist");
+  const tituloActual = userData?.cancionActual?.title;
+  const artistaActual = userData?.cancionActual?.artist;
 
-  playingSong.textContent = currentTitle ? currentTitle : "";
-  songArtist.textContent = currentArtist ? currentArtist : "";
+  cancionPlay.textContent = tituloActual ? tituloActual : "";
+  artistaCancion.textContent = artistaActual ? artistaActual : "";
 };
 
 
-const highlightCurrentSong = () => {
+const destacarCancionActual = () => {
   //obtener el elemento .playlist-song y asígnalo a una constante playlistSongElements.
-  const playlistSongElements = document.querySelectorAll(".playlist-song");
+  const playlistElementosCancion = document.querySelectorAll(".playlist-song");
 
   //Utiliza getElementById() para obtener el id de la canción que se está reproduciendo, 
   //luego utiliza literales de plantilla para anteponerle song-. Asígnalo a la constante 
   //songToHighlight.
-  const songToHighlight = document.getElementById(
-    `song-${userData?.currentSong?.id}`
+  const cancionDestacar = document.getElementById(
+    `song-${userData?.cancionActual?.id}`
   );
   //El método forEach se utiliza para recorrer un array y realizar una función en cada 
   //elemento del array. 
-  playlistSongElements.forEach((songEl) => {
+  playlistElementosCancion.forEach((songEl) => {
     //para eliminar el atributo "aria-current". Esto eliminará el atributo para cada 
     //una de las canciones.
     songEl.removeAttribute("aria-current");
   });
   //Resalta la cancion reproducida
-  if (songToHighlight) songToHighlight.setAttribute("aria-current", "true");
+  if (cancionDestacar) cancionDestacar.setAttribute("aria-current", "true");
 };
 
 /**
@@ -231,17 +236,17 @@ const highlightCurrentSong = () => {
  * Es una expresión de función, que es una función que se asigna a una variable.
 
  */
-const renderSongs = (array) => {
+const renderCanciones = (array) => {
   //Añadir nuevo HTML para cada canción utilizando el método map(). 
-  const songsHTML = array.map((song) => {
+  const cancionesHTML = array.map((song) => {
     return `
       <li id="song-${song.id}" class="playlist-song">
-      <button class="playlist-song-info" onclick="playSong(${song.id})">
+      <button class="playlist-song-info" onclick="playCancion(${song.id})">
           <span class="playlist-song-title">${song.title}</span>
           <span class="playlist-song-artist">${song.artist}</span>
           <span class="playlist-song-duration">${song.duration}</span>
       </button>
-      <button onclick="deleteSong(${song.id})" class="playlist-song-delete" aria-label="Delete ${song.title}">
+      <button onclick="borrarCancion(${song.id})" class="playlist-song-delete" aria-label="Delete ${song.title}">
           <svg width="20" height="20" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="8" fill="#4d4d62"/>
           <path fill-rule="evenodd" clip-rule="evenodd" d="M5.32587 5.18571C5.7107 4.90301 6.28333 4.94814 6.60485 5.28651L8 6.75478L9.39515 5.28651C9.71667 4.94814 10.2893 4.90301 10.6741 5.18571C11.059 5.4684 11.1103 5.97188 10.7888 6.31026L9.1832 7.99999L10.7888 9.68974C11.1103 10.0281 11.059 10.5316 10.6741 10.8143C10.2893 11.097 9.71667 11.0519 9.39515 10.7135L8 9.24521L6.60485 10.7135C6.28333 11.0519 5.7107 11.097 5.32587 10.8143C4.94102 10.5316 4.88969 10.0281 5.21121 9.68974L6.8168 7.99999L5.21122 6.31026C4.8897 5.97188 4.94102 5.4684 5.32587 5.18571Z" fill="white"/></svg>
         </button>
@@ -249,7 +254,7 @@ const renderSongs = (array) => {
       `;
   }).join("");
 
-  playlistSongs.innerHTML = songsHTML;
+  playlistCanciones.innerHTML = cancionesHTML;
 
 };
 
@@ -258,47 +263,49 @@ const renderSongs = (array) => {
  * aria-label en "Reproducir".
  */
 
-const setPlayButtonAccessibleText = () => {
-  const song = userData?.currentSong || userData?.songs[0];
-  playButton.setAttribute(
+const textoAccesibleBtnReproducir = () => {
+  const cancion = userData?.cancionActual || userData?.canciones[0];
+  
+  btn_play.setAttribute(
     "aria-label",
-    song?.title ? `Play ${song.title}` : "Play"
+    cancion?.title ? `Play ${cancion.title}` : "Play"
+   
   );
 };
 
 
-const getCurrentSongIndex = () => userData?.songs.indexOf(userData?.currentSong);
+const obtenerIndiceCancionActual = () => userData?.canciones.indexOf(userData?.cancionActual);
 
 
-playButton.addEventListener("click", () => {
-  if (userData?.currentSong === null) {
-    playSong(userData?.songs[0].id);
+btn_play.addEventListener("click", () => {
+  if (userData?.cancionActual === null) {
+    playCancion(userData?.canciones[0].id);
   } else {
     //Esto garantiza que la canción que se está reproduciendo seguirá sonando cuando 
     //se pulse el botón de reproducción.
 
-    playSong(userData?.currentSong.id);
+    playCancion(userData?.cancionActual.id);
   }
 });
 
-pauseButton.addEventListener("click", pauseSong);
-nextButton.addEventListener("click", playNextSong);
-previousButton.addEventListener("click", playPreviousSong);
-shuffleButton.addEventListener("click", shuffle);
+btn_pause.addEventListener("click", pausarCancion);
+btn_siguiente.addEventListener("click", playSiguienteCancion);
+btn_anterior.addEventListener("click", playAnteriorCancion);
+btn_aleatorio.addEventListener("click", aleatorio);
 
 //Si finaliza la cancion reproduce la siguiente 
 audio.addEventListener("ended", () => {
-  const currentSongIndex = getCurrentSongIndex();
-  const nextSongExists = userData?.songs[currentSongIndex + 1] !== undefined;
-  if (nextSongExists) {
-    playNextSong();
+  const indiceCancionActual = obtenerIndiceCancionActual();
+  const existeSiguienteCancion = userData?.canciones[indiceCancionActual + 1] !== undefined;
+  if (existeSiguienteCancion) {
+    playSiguienteCancion();
   } else {
-    userData.currentSong = null;
-    userData.songCurrentTime = 0;
-    pauseSong()
-    setPlayerDisplay()
-    highlightCurrentSong()
-    setPlayButtonAccessibleText()
+    userData.cancionActual = null;
+    userData.tiempoActualCanción = 0;
+    pausarCancion()
+    establecerPantallaReproductor()
+    destacarCancionActual()
+    textoAccesibleBtnReproducir()
   }
  
  
@@ -308,9 +315,9 @@ audio.addEventListener("ended", () => {
 /**El método sort() convierte los elementos de una matriz en cadenas y las ordena en su 
  * lugar basándose en sus valores en la codificación UTF-16.
  */
-const sortSongs = () => {
+const ordenarCanciones = () => {
   // recorre el user data de las canciones y las ordena
-  userData?.songs.sort((a, b) => {
+  userData?.canciones.sort((a, b) => {
     /*
     La razón por la que este ejemplo devuelve números es porque el método sort()
     espera que se devuelva un número. Si devuelve un número negativo, el primer 
@@ -327,9 +334,9 @@ const sortSongs = () => {
     // devuelva el número 0 para dejar el orden de los dos elementos sin cambios.
     return 0;
   });
-  return userData?.songs;
+  return userData?.canciones;
 
 };
 
-renderSongs(sortSongs());
-setPlayButtonAccessibleText();
+renderCanciones(ordenarCanciones());
+textoAccesibleBtnReproducir();

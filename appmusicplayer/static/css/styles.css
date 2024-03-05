@@ -179,7 +179,7 @@ button:focus,
   row-gap: 10px;
 }
 
-#playlist-songs {
+#playlist-canciones {
   width: 430px;
   height: 100%;
   background-color: var(--foreground-color);
@@ -277,7 +277,7 @@ button:focus,
     height: 340px;
   }
 
-  #playlist-songs {
+  #playlist-canciones{
     height: 280px;
     padding: 5px 6px;
     overflow-y: scroll;
@@ -286,15 +286,15 @@ button:focus,
     scrollbar-width: thin;
   }
 
-  #playlist-songs::-webkit-scrollbar {
+  #playlist-canciones::-webkit-scrollbar {
     width: 5px;
   }
 
-  #playlist-songs::-webkit-scrollbar-track {
+  #playlist-canciones::-webkit-scrollbar-track {
     background: var(--background-color);
   }
 
-  #playlist-songs::-webkit-scrollbar-thumb {
+  #playlist-canciones::-webkit-scrollbar-thumb {
     background: var(--secondary-color);
   }
 
@@ -309,7 +309,7 @@ button:focus,
   .player-bar,
   .playlist-bar,
   .player-content,
-  #playlist-songs {
+  #playlist-canciones {
     width: 280px;
   }
 
